@@ -14,6 +14,8 @@ import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.GraphDatabase;
 
+import java.util.LinkedList;
+
 import static org.apache.tinkerpop.gremlin.process.traversal.P.inside;
 
 public class App {
@@ -29,8 +31,10 @@ public class App {
         try (Graph graph = new Neo4JGraph(driver, vertexIdProvider, edgeIdProvider)) {
             // begin transaction
             try (Transaction transaction = graph.tx()) {
+                // Clean all
                 graph.vertices().forEachRemaining(Element::remove);
                 graph.edges().forEachRemaining(Element::remove);
+
                 // use Graph API to create, update and delete Vertices and Edges
                 // enable profiler
                 Vertex marko = graph.addVertex(T.label, "person", "name", "marko", "age", 29L);
@@ -48,12 +52,8 @@ public class App {
 
                 transaction.commit();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
-        // Check traversing
-        try (Graph graph = new Neo4JGraph(driver, vertexIdProvider, edgeIdProvider)) {
+            // Check traversing
             // begin transaction
             try (Transaction transaction = graph.tx()) {
                 System.out.println("Traverse by name");
@@ -87,6 +87,62 @@ public class App {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+
+        // Check threaded (not work)
+        /*try (Graph graph = new Neo4JGraph(driver, vertexIdProvider, edgeIdProvider)) {
+            // begin transaction
+            try (Transaction transaction = graph.tx()) {
+                LinkedList<Thread> threads = new LinkedList<>();
+                for (int i = 0; i < 8; i++) {
+                    int finalI = i;
+                    Thread thread = new Thread(() -> graph.addVertex(T.label, "person", "name", "xxx" + finalI));
+                    threads.add(thread);
+                }
+                for (Thread thread : threads) {
+                    thread.start();
+                }
+                for (Thread thread : threads) {
+                    try {
+                        thread.join();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                transaction.commit();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }*/
+
+        // Check threaded (work)
+        LinkedList<Thread> threads = new LinkedList<>();
+        for (int i = 0; i < 8; i++) {
+            int finalI = i;
+            Thread thread = new Thread(() -> {
+                // Check threaded
+                // create graph instance
+                try (Graph graph1 = new Neo4JGraph(driver, vertexIdProvider, edgeIdProvider)) {
+                    // begin transaction
+                    try (Transaction transaction1 = graph1.tx()) {
+                        graph1.addVertex(T.label, "person", "name", "xxx" + finalI);
+                        transaction1.commit();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+            threads.add(thread);
+        }
+        for (Thread thread : threads) {
+            thread.start();
+        }
+        for (Thread thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

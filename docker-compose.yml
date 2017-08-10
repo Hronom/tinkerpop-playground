@@ -1,0 +1,24 @@
+version: '2'
+services:
+  tinkerpop-playground-neo4j:
+    image: neo4j:3.2.3
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/1234567890
+      - NEO4J_dbms_memory_pagecache_size=3g
+      - NEO4J_dbms_memory_heap_maxSize=3g
+      - dbms.allow_format_migration=true
+    volumes:
+      - /tinkerpop-playground-neo4j/neo4j-1/data:/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "250m"
+        max-file: "10"
+    networks:
+      - tinkerpop-playground-neo4j
+
+networks:
+  tinkerpop-playground-neo4j:

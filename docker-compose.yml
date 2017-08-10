@@ -9,7 +9,6 @@ services:
       - NEO4J_AUTH=neo4j/1234567890
       - NEO4J_dbms_memory_pagecache_size=3g
       - NEO4J_dbms_memory_heap_maxSize=3g
-      - dbms.allow_format_migration=true
     volumes:
       - /tinkerpop-playground-neo4j/neo4j-1/data:/data
     logging:

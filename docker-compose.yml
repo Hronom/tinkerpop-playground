@@ -19,5 +19,13 @@ services:
     networks:
       - tinkerpop-playground-neo4j
 
+  orientdb:
+    image: orientdb:latest
+    ports:
+      - "2424:2424"
+      - "2480:2480"
+    environment:
+      - ORIENTDB_ROOT_PASSWORD=root
+
 networks:
   tinkerpop-playground-neo4j:

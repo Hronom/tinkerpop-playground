@@ -17,6 +17,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.michaelpollmeier</groupId>
+            <artifactId>orientdb-gremlin</artifactId>
+            <version>3.2.3.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.tinkerpop</groupId>
             <artifactId>gremlin-core</artifactId>
             <version>3.2.5</version>
@@ -109,7 +114,7 @@
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib</classpathPrefix>
                             <classpathLayoutType>simple</classpathLayoutType>
-                            <mainClass>com.github.hronom.tinkerpop.playground.App</mainClass>
+                            <mainClass>com.github.hronom.tinkerpop.playground.Neo4JTestApp1</mainClass>
                         </manifest>
                         <manifestEntries>
                             <Version>${project.version}</Version>

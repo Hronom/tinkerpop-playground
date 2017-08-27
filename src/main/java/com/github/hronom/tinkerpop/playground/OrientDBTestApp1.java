@@ -1,34 +1,19 @@
 package com.github.hronom.tinkerpop.playground;
 
-import com.steelbridgelabs.oss.neo4j.structure.Neo4JElementIdProvider;
-import com.steelbridgelabs.oss.neo4j.structure.Neo4JGraph;
-import com.steelbridgelabs.oss.neo4j.structure.providers.Neo4JNativeElementIdProvider;
-
+import org.apache.tinkerpop.gremlin.orientdb.OrientGraphFactory;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Transaction;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.neo4j.driver.v1.AuthTokens;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.GraphDatabase;
-
-import java.util.LinkedList;
 
 import static org.apache.tinkerpop.gremlin.process.traversal.P.inside;
 
-public class App {
+public class OrientDBTestApp1 {
     public static void main(String[] args) {
-        // create driver instance
-        Driver driver = GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "1234567890"));
-
-        // create id provider
-        Neo4JElementIdProvider<?> vertexIdProvider = new Neo4JNativeElementIdProvider();
-        Neo4JElementIdProvider<?> edgeIdProvider = new Neo4JNativeElementIdProvider();
-
         // create graph instance
-        try (Graph graph = new Neo4JGraph(driver, vertexIdProvider, edgeIdProvider)) {
+        try (Graph graph = new OrientGraphFactory("remote:localhost:2424/test-db").getNoTx()) {
             // begin transaction
             try (Transaction transaction = graph.tx()) {
                 // Clean all
@@ -87,62 +72,6 @@ public class App {
             }
         } catch (Exception e) {
             e.printStackTrace();
-        }
-
-        // Check threaded (not work)
-        /*try (Graph graph = new Neo4JGraph(driver, vertexIdProvider, edgeIdProvider)) {
-            // begin transaction
-            try (Transaction transaction = graph.tx()) {
-                LinkedList<Thread> threads = new LinkedList<>();
-                for (int i = 0; i < 8; i++) {
-                    int finalI = i;
-                    Thread thread = new Thread(() -> graph.addVertex(T.label, "person", "name", "xxx" + finalI));
-                    threads.add(thread);
-                }
-                for (Thread thread : threads) {
-                    thread.start();
-                }
-                for (Thread thread : threads) {
-                    try {
-                        thread.join();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                transaction.commit();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }*/
-
-        // Check threaded (work)
-        LinkedList<Thread> threads = new LinkedList<>();
-        for (int i = 0; i < 8; i++) {
-            int finalI = i;
-            Thread thread = new Thread(() -> {
-                // Check threaded
-                // create graph instance
-                try (Graph graph1 = new Neo4JGraph(driver, vertexIdProvider, edgeIdProvider)) {
-                    // begin transaction
-                    try (Transaction transaction1 = graph1.tx()) {
-                        graph1.addVertex(T.label, "person", "name", "xxx" + finalI);
-                        transaction1.commit();
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            });
-            threads.add(thread);
-        }
-        for (Thread thread : threads) {
-            thread.start();
-        }
-        for (Thread thread : threads) {
-            try {
-                thread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
         }
     }
 }
